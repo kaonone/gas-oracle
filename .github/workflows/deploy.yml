@@ -17,15 +17,24 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_KEY" >> ~/.ssh/github-ci
           chmod 400 ~/.ssh/github-ci
+          echo "$DEPLOY_KEY" >> ~/.ssh/deploy_key
+          chmod 400 ~/.ssh/deploy_key
           echo -e "Host github-ci
           \tUser github-ci
           \tHostName 64.227.111.66
           \tIdentityFile ~/.ssh/github-ci
+          \tForwardAgent yes
           \tStrictHostKeyChecking No" >> ~/.ssh/config
           chmod 400 ~/.ssh/config
         shell: bash
         env:
           SSH_KEY: ${{secrets.SSH_KEY}}
+          DEPLOY_KEY: ${{secrets.DEPLOY_KEY}}
+      - name: Start SSH Agent
+        run: |
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/deploy_key
+        shell: bash
       - name: Install PM2
         run: npm install -g pm2
       - name: Create env file
