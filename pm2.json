@@ -11,7 +11,7 @@
     "production": {
       "host": "github-ci",
       "ref": "origin/master",
-      "repo": "git@github.com:akropolisio/gas-oracle.git",
+      "repo": "git@github.com:kaonone/gas-oracle.git",
       "path": "/home/github-ci/app",
       "pre-deploy-local": "rsync -e ssh .env github-ci:~/.env",
       "post-deploy": "mv ~/.env . && npm install && npm run start && pm2 save"

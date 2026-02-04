@@ -23,14 +23,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/akropolisio/gas-oracle.git"
+    "url": "git+https://github.com/kaonone/gas-oracle.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/akropolisio/gas-oracle/issues"
+    "url": "https://github.com/kaonone/gas-oracle/issues"
   },
-  "homepage": "https://github.com/akropolisio/gas-oracle#readme",
+  "homepage": "https://github.com/kaonone/gas-oracle#readme",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",

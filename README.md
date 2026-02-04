@@ -13,7 +13,7 @@ For Akropolis origins, the server can be reached at https://gas-oracle.akropolis
 Clone this repo:
 
 ```
-git clone git@github.com:akropolisio/gas-oracle.git
+git clone git@github.com:kaonone/gas-oracle.git
 cd gas-oracle
 ```
 
