@@ -2,53 +2,52 @@ name: Build & Deploy
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          node-version: 14
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
 
-      - name: Configure Host
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_KEY" >> ~/.ssh/github-ci
-          chmod 400 ~/.ssh/github-ci
-          echo "$DEPLOY_KEY" >> ~/.ssh/deploy_key
-          chmod 400 ~/.ssh/deploy_key
-          echo -e "Host github-ci
-          \tUser github-ci
-          \tHostName 64.227.111.66
-          \tIdentityFile ~/.ssh/github-ci
-          \tForwardAgent yes
-          \tStrictHostKeyChecking No" >> ~/.ssh/config
-          chmod 400 ~/.ssh/config
-        shell: bash
-        env:
-          SSH_KEY: ${{secrets.SSH_KEY}}
-          DEPLOY_KEY: ${{secrets.DEPLOY_KEY}}
+            APP_DIR=~/gas-oracle
+            REPO_URL=git@github.com:kaonone/gas-oracle.git
 
-      - name: Start SSH Agent
-        run: |
-          eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/deploy_key
-        shell: bash
-      - name: Install PM2
-        run: npm install -g pm2
-      - name: Create env file
-        run: |
-          touch .env
-          echo "JSON_RPC_URL_1=\"$JSON_RPC_URL_1\"
-          JSON_RPC_URL_56=\"$JSON_RPC_URL_56\"
-          JSON_RPC_URL_42161=\"$JSON_RPC_URL_42161\"" >> .env
-        shell: bash
-        env:
-          JSON_RPC_URL_1: ${{ secrets.JSON_RPC_URL_1 }}
-          JSON_RPC_URL_56: ${{ secrets.JSON_RPC_URL_56 }}
-          JSON_RPC_URL_42161: ${{ secrets.JSON_RPC_URL_42161 }}
-      - name: Deploy
-        run: pm2 deploy pm2.json production
+            # Clone or pull repository
+            if [ -d "$APP_DIR" ]; then
+              cd $APP_DIR
+              git fetch origin master
+              git reset --hard origin/master
+            else
+              git clone $REPO_URL $APP_DIR
+              cd $APP_DIR
+            fi
+
+            # Install dependencies
+            npm ci
+
+            # Create .env file
+            cat > .env << EOF
+            JSON_RPC_URL_1=${{ secrets.JSON_RPC_URL_1 }}
+            JSON_RPC_URL_56=${{ secrets.JSON_RPC_URL_56 }}
+            JSON_RPC_URL_42161=${{ secrets.JSON_RPC_URL_42161 }}
+            EOF
+
+            # Build the project
+            npm run build
+
+            # Install PM2 globally if not installed
+            command -v pm2 >/dev/null 2>&1 || npm install -g pm2
+
+            # Start or restart the application
+            pm2 startOrRestart ecosystem.config.js --env production
+
+            # Save PM2 process list for auto-restart on reboot
+            pm2 save
