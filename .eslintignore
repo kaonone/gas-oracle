@@ -4,3 +4,4 @@ node_modules
 jest.config.js
 pm2.config.js
 pm2-dev.config.js
+ecosystem.config.js
